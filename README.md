@@ -1,2 +1,3 @@
-# lambdaorm-client-python
-Lambda ORM Client
+# λORM Python Client
+
+Lambda ORM Client for python
