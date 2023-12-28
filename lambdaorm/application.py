@@ -154,7 +154,7 @@ class StageService:
         """
         raise NotImplementedError
 
-class Orm(ExpressionService):
+class IOrm(ExpressionService):
     """Interface for Orm."""
 
     @property
@@ -171,4 +171,3 @@ class Orm(ExpressionService):
     def get_stage(self) -> StageService:
         """Get the stage service."""
         raise NotImplementedError
-

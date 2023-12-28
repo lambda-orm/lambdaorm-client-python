@@ -707,18 +707,13 @@ class QueryOptions:
             headers=data.get("headers")
         )
 
-class Format(Enum):
-    """Result format for a query."""
-    DEFAULT = "default"
-    BEAUTIFUL = "beautiful"
-    LIGHT = "light"
 
 @dataclass
 class MethodOptions:
     """Parameters for a method."""
-    format: Format = Format.DEFAULT
     timeout: int = 10
     chunk: int = None
+    environmentFile: Optional[str] = None
 
 @dataclass
 class Version:
@@ -761,3 +756,10 @@ class Health:
             time=data.get("time", ""),
             uptime=data.get("uptime", 0)
         )
+
+@dataclass
+class CliCommandArgs:
+    """Command line arguments."""
+    expression: Optional[str]=None
+    data: Optional[dict] = None
+    options:Optional[QueryOptions] = None
