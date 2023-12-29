@@ -1,8 +1,10 @@
 # pylint: disable=invalid-name
+# pylint: disable=E1123
 """Domain classes for the lambdaorm package."""
 from typing import List, Optional, Any, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
+from dataclasses_json import dataclass_json, LetterCase
 
 class RelationType(Enum):
     """Relation type for a property."""
@@ -10,11 +12,12 @@ class RelationType(Enum):
     manyToOne = "manyToOne"
     oneToOne = "oneToOne"
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class MetadataParameter:
     """Metadata parameter for a property."""
-    name: str
-    type: str
+    name: Optional[str] = None
+    type: Optional[str] = None
     children: Optional[List["MetadataParameter"]] = None
 
     @classmethod
@@ -29,13 +32,17 @@ class MetadataParameter:
             return cls(name=name, type=type_, children=children)
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
-
+    
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class MetadataModel:
     """Metadata model for a property."""
-    name: str
-    type: str
+    name: Optional[str] = None
+    type: Optional[str] = None
     children: Optional[List["MetadataModel"]] = None
 
     def __init__(self, name: str, model_type: str, children: Optional[List["MetadataModel"]] = None):
@@ -55,18 +62,36 @@ class MetadataModel:
             return cls(name=name, model_type=model_type, children=children)
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
+    
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Constraint:
     """Constraint for a property."""
-    message: str
-    condition: str
+    message: Optional[str] = None
+    condition: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Constraint":
+        """Creates a Constraint instance from a dictionary."""
+        return cls(
+            message=data.get("message"),
+            condition=data.get("condition")
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class MetadataConstraint:
     """Metadata constraint for a property."""
-    entity: str
-    constraints: List[Constraint]
+    entity: Optional[str] = None
+    constraints: List[Constraint] = None
     children: Optional[List["MetadataConstraint"]] = None
 
     @classmethod
@@ -83,11 +108,16 @@ class MetadataConstraint:
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
 
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
+
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Property:
     """Property for an entity."""
-    name: str
-    property_type: str
+    name: Optional[str] = None
+    property_type: Optional[str] = None
     length: Optional[int] = None
     required: Optional[bool] = None
     primaryKey: Optional[bool] = None
@@ -101,11 +131,36 @@ class Property:
     enum: Optional[str] = None
     key: Optional[str] = None
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Property":
+        """Creates a Property instance from a dictionary."""
+        return cls(
+            name=data.get("name"),
+            property_type=data.get("propertyType"),
+            length=data.get("length"),
+            required=data.get("required"),
+            primary_key=data.get("primaryKey"),
+            auto_increment=data.get("autoIncrement"),
+            view=data.get("view"),
+            read_exp=data.get("readExp"),
+            write_exp=data.get("writeExp"),
+            default=data.get("default"),
+            read_value=data.get("readValue"),
+            write_value=data.get("writeValue"),
+            enum=data.get("enum"),
+            key=data.get("key")
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
+
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class EnumValue:
     """Enum value for an entity."""
-    name: str
-    value: Any
+    name: Optional[str] = None
+    value: Optional[Any] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "EnumValue":
@@ -114,11 +169,15 @@ class EnumValue:
             name=data.get("name"),
             value=data.get("value")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class EnumDomain:
     """Enum value for an entity."""
-    name: str
+    name: Optional[str] = None
     extends: Optional[str] = None
     abstract: Optional[bool] = None
     values: List[EnumValue] = None
@@ -132,15 +191,19 @@ class EnumDomain:
             abstract=data.get("abstract"),
             values=[EnumValue.from_dict(value_data) for value_data in data.get("values", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Relation:
     """Relation for an entity."""
-    name: str
-    type: RelationType
-    from_: str
-    entity: str
-    to: str
+    name: Optional[str] = None
+    type: Optional[RelationType] = None
+    from_: Optional[str] = None
+    entity: Optional[str] = None
+    to: Optional[str] = None
     composite: Optional[bool] = None
     weak: Optional[bool] = None
     target: Optional[str] = None
@@ -158,12 +221,16 @@ class Relation:
             weak=data.get("weak"),
             target=data.get("target")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Dependent:
     """Dependent for an entity."""
-    entity: str
-    relation: Relation
+    entity: Optional[str] = None
+    relation: Optional[Relation] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Dependent":
@@ -172,12 +239,16 @@ class Dependent:
             entity=data.get("entity", ""),
             relation=Relation.from_dict(data.get("relation", {}))
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Index:
     """Index for an entity."""
-    name: str
-    fields: List[str]
+    name: Optional[str] = None
+    fields: List[str] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Index":
@@ -186,18 +257,22 @@ class Index:
             name=data.get("name", ""),
             fields=data.get("fields", [])
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Entity:
     """Entity for the domain model."""
-    name: str
-    primaryKey: List[str]
-    uniqueKey: List[str]
-    required: List[str]
-    indexes: List[Index]
-    properties: List[Any]
-    relations: List[Relation]
-    dependents: List[Dependent]
+    name: Optional[str] = None
+    primaryKey: List[str] = None
+    uniqueKey: List[str] = None
+    required: List[str] = None
+    indexes: List[Index] = None
+    properties: List[Any] = None
+    relations: List[Relation] = None
+    dependents: List[Dependent] = None
     extends: Optional[str] = None
     abstract: Optional[bool] = None
     singular: Optional[str] = None
@@ -236,19 +311,38 @@ class Entity:
             hadViewReadExp=data.get("hadViewReadExp"),
             composite=data.get("composite")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class RelationInfo:
     """Relation info for an entity."""
-    previousRelation: str
-    previousEntity: Entity
-    entity: Entity
-    relation: Relation
+    previousRelation: Optional[str] = None
+    previousEntity: Optional[Entity] = None
+    entity: Optional[Entity] = None
+    relation: Optional[Relation] = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "RelationInfo":
+        """Creates a RelationInfo instance from a dictionary."""
+        return cls(
+            previous_relation=data.get("previousRelation"),
+            previous_entity=Entity.from_dict(data.get("previousEntity")),
+            entity=Entity.from_dict(data.get("entity")),
+            relation=Relation.from_dict(data.get("relation"))
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class PropertyMapping:
     """Property mapping for an entity."""
-    mapping: str
+    mapping: Optional[str] = None
     readMappingExp: Optional[str] = None
 
     @classmethod
@@ -258,26 +352,66 @@ class PropertyMapping:
             mapping=data.get("mapping"),
             readMappingExp=data.get("readMappingExp")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class EntityMapping(Entity):
     """Entity mapping for the domain model."""
-    mapping: str
-    sequence: str
-    properties: List[PropertyMapping]
+    mapping: Optional[str] = None
+    sequence: Optional[str] = None
+    properties: List[PropertyMapping] = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "EntityMapping":
+        """Creates an EntityMapping instance from a dictionary."""
+        return cls(
+            name=data.get("name"),
+            label=data.get("label"),
+            plural_label=data.get("pluralLabel"),
+            description=data.get("description"),
+            mapping=data.get("mapping"),
+            sequence=data.get("sequence"),
+            properties=[PropertyMapping.from_dict(prop_data) for prop_data in data.get("properties", [])]
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class FormatMapping(Entity):
     """Format mapping for an entity."""
     dateTime: Optional[str] = None
     date: Optional[str] = None
     time: Optional[str] = None
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "FormatMapping":
+        """Creates a FormatMapping instance from a dictionary."""
+        return cls(
+            name=data.get("name"),
+            label=data.get("label"),
+            plural_label=data.get("pluralLabel"),
+            description=data.get("description"),
+            date_time=data.get("dateTime"),
+            date=data.get("date"),
+            time=data.get("time")
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
+
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Mapping:
     """Mapping for the domain model."""
-    name: str
-    entities: List[EntityMapping]
+    name: Optional[str] = None
+    entities: List[EntityMapping]= None
     extends: Optional[str] = None
     mapping: Optional[str] = None
     format: Optional[FormatMapping] = None
@@ -292,11 +426,15 @@ class Mapping:
             mapping=data.get("mapping"),
             format=FormatMapping.from_dict(data.get("format", {}))
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class PropertyView:
     """Property view for an entity."""
-    name: str
+    name: Optional[str] = None
     readExp: Optional[str] = None
     exclude: Optional[bool] = None
 
@@ -308,12 +446,16 @@ class PropertyView:
             readExp=data.get("readExp"),
             exclude=data.get("exclude")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class EntityView:
     """Entity view for the domain model."""
-    name: str
-    properties: List[PropertyView]
+    name: Optional[str] = None
+    properties: List[PropertyView] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "EntityView":
@@ -324,12 +466,16 @@ class EntityView:
             name=data.get("name"),
             properties=properties
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class View:
     """View for the domain model."""
-    name: str
-    entities: List[EntityView]
+    name: Optional[str] = None
+    entities: List[EntityView] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "View":
@@ -338,14 +484,18 @@ class View:
             name=data.get("name", ""),
             entities=[EntityView.from_dict(entity_view) for entity_view in data.get("entities", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Source:
     """Source for the domain model."""
-    name: str
-    dialect: str
-    mapping: str
-    connection: Any
+    name: Optional[str] = None
+    dialect: Optional[str] = None
+    mapping: Optional[str] = None
+    connection: Optional[Any]= None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Source":
@@ -356,11 +506,15 @@ class Source:
             mapping=data.get("mapping", ""),
             connection=data.get("connection")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class SourceRule:
     """Source rule for a stage."""
-    name: str
+    name: Optional[str] = None
     condition: Optional[str] = None
 
     @classmethod
@@ -370,12 +524,16 @@ class SourceRule:
             name=data.get("name", ""),
             condition=data.get("condition")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Stage:
     """Stage for the domain model."""
-    name: str
-    sources: List[SourceRule]
+    name: Optional[str] = None
+    sources: List[SourceRule] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Stage":
@@ -384,12 +542,16 @@ class Stage:
             name=data.get("name", ""),
             sources=[SourceRule.from_dict(source_rule) for source_rule in data.get("sources", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class ListenerConfig:
     """Listener configuration for the domain model."""
-    name: str
-    on: List[str]
+    name: Optional[str] = None
+    on: List[str] = None
     condition: Optional[str] = None
     before: Optional[str] = None
     after: Optional[str] = None
@@ -406,12 +568,16 @@ class ListenerConfig:
             after=data.get("after"),
             error=data.get("error")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class TaskConfig:
     """Task configuration for the domain model."""
-    name: str
-    expression: str
+    name: Optional[str] = None
+    expression: Optional[str] = None
     condition: Optional[str] = None
 
     @classmethod
@@ -422,13 +588,17 @@ class TaskConfig:
             expression=data.get("expression"),
             condition=data.get("condition")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class AppPathsConfig:
     """Application paths configuration for the domain model."""
-    src: str
-    data: str
-    domain: str
+    src: Optional[str] = None
+    data: Optional[str] = None
+    domain: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "AppPathsConfig":
@@ -438,13 +608,17 @@ class AppPathsConfig:
             data=data.get("data", ""),
             domain=data.get("domain", "")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class DomainSchema:
     """Domain schema for the domain model."""
-    version: str
-    entities: List[Entity]
-    enums: List[Any]
+    version: Optional[str] = None
+    entities: List[Entity] = None
+    enums: List[Any] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "DomainSchema":
@@ -454,8 +628,12 @@ class DomainSchema:
             entities=[Entity.from_dict(entity_data) for entity_data in data.get("entities", [])],
             enums=data.get("enums", [])
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class InfrastructureSchema:
     """Infrastructure schema for the domain model."""
     paths: Optional[AppPathsConfig] = None
@@ -474,12 +652,15 @@ class InfrastructureSchema:
             sources=[Source.from_dict(source) for source in data.get("sources", [])],
             stages=[Stage.from_dict(stage) for stage in data.get("stages", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 class ApplicationSchema:
     """Application schema for the domain model."""
-    start: List[TaskConfig]
-    listeners: List[ListenerConfig]
-    end: List[TaskConfig]
+    start: List[TaskConfig] = None
+    listeners: List[ListenerConfig] = None
+    end: List[TaskConfig] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "ApplicationSchema":
@@ -489,12 +670,16 @@ class ApplicationSchema:
             listeners=[ListenerConfig.from_dict(item) for item in data.get("listeners", [])],
             end=[TaskConfig.from_dict(item) for item in data.get("end", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Schema:
     """Schema for the domain model."""
-    version: str
-    domain: DomainSchema
+    version: Optional[str] = None
+    domain: Optional[DomainSchema] = None
     infrastructure: Optional[InfrastructureSchema] = None
     application: Optional[ApplicationSchema] = None
 
@@ -507,18 +692,17 @@ class Schema:
             infrastructure=InfrastructureSchema.from_dict(data.get("infrastructure", {})),
             application=ApplicationSchema.from_dict(data.get("application", {}))
         )
-
-# @dataclass
-# class ModelConfig:
-#     """Model configuration for the domain model."""
-#     mappings: List[Mapping]
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class MappingConfig:
     """Mapping configuration for the domain model."""
-    mapping: Any
-    pending: List[Any]
-    inconsistency: List[Any]
+    mapping: Optional[Any] = None
+    pending: List[Any] = None
+    inconsistency: List[Any] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "MappingConfig":
@@ -528,12 +712,16 @@ class MappingConfig:
             pending=data.get("pending", []),
             inconsistency=data.get("inconsistency", [])
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class SchemaConfigEntity:
     """Schema configuration entity for the domain model."""
-    entity: str
-    rows: List[Any]
+    entity: Optional[str] = None
+    rows: List[Any] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "SchemaConfigEntity":
@@ -542,11 +730,15 @@ class SchemaConfigEntity:
             entity=data.get("entity"),
             rows=data.get("rows", [])
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class SchemaConfig:
     """Schema configuration for the domain model."""
-    entities: List[SchemaConfigEntity]
+    entities: List[SchemaConfigEntity] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "SchemaConfig":
@@ -554,13 +746,17 @@ class SchemaConfig:
         return cls(
             entities=[SchemaConfigEntity.from_dict(entity_data) for entity_data in data.get("entities", [])]
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Behavior:
     """Behavior for the domain model."""
     alias: Optional[str] = None
-    property: str
-    expression: str
+    property: Optional[str] = None
+    expression: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Behavior":
@@ -570,12 +766,16 @@ class Behavior:
             property=data.get("property"),
             expression=data.get("expression")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Position:
     """Position for the domain model."""
-    ln: int
-    col: int
+    ln: Optional[int] = None
+    col: Optional[int] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Position":
@@ -584,11 +784,15 @@ class Position:
             ln=data.get("ln"),
             col=data.get("col")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Parameter:
     """Parameter for the domain model."""
-    name: str
+    name: Optional[str] = None
     type: Optional[str] = None
     default: Optional[Any] = None
     value: Optional[Any] = None
@@ -604,15 +808,19 @@ class Parameter:
             value=data.get("value"),
             multiple=data.get("multiple")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Metadata:
     """Metadata for the domain model."""
-    classtype: str
-    pos: Position
-    name: str
+    classtype: Optional[str] = None
+    pos: Optional[Position] = None
+    name: Optional[str] = None
     children: Optional[List["Metadata"]] = None
-    type: str
+    type: Optional[str] = None
     returnType: Optional[str] = None
     entity: Optional[str] = None
     columns: Optional[List[Property]] = None
@@ -665,15 +873,19 @@ class Metadata:
             isRoot=data.get("isRoot"),
             number=data.get("number")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class QueryPlan:
     """Query plan for the domain model."""
-    entity: str
-    dialect: str
-    source: str
-    sentence: str
+    entity: Optional[str] = None
+    dialect: Optional[str] = None
+    source: Optional[str] = None
+    sentence: Optional[str] = None
     children: Optional[List["QueryPlan"]] = None
 
     @classmethod
@@ -686,8 +898,13 @@ class QueryPlan:
             sentence=data.get("sentence", ""),
             children=[cls.from_dict(child_data) for child_data in data.get("children", [])] if data.get("children") else None
         )
+    
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class QueryOptions:
     """Parameters for a query."""
     stage: Optional[str] = None
@@ -695,6 +912,20 @@ class QueryOptions:
     chunkSize: Optional[int] = None
     tryAllCan: Optional[bool] = None
     headers: Optional[List[Tuple[str, Any]]] = None
+
+    def __init__(
+        self,
+        stage: Optional[str] = None,
+        view: Optional[str] = None,
+        chunk_size: Optional[int] = None,
+        try_all_can: Optional[bool] = None,
+        headers: Optional[List[Tuple[str, Any]]] = None
+    ):
+        self.stage = stage
+        self.view = view
+        self.chunk_size = chunk_size
+        self.try_all_can = try_all_can
+        self.headers = headers
 
     @classmethod
     def from_dict(cls, data: dict) -> "QueryOptions":
@@ -706,19 +937,48 @@ class QueryOptions:
             tryAllCan=data.get("tryAllCan"),
             headers=data.get("headers")
         )
+    
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class MethodOptions:
     """Parameters for a method."""
     timeout: int = 10
     chunk: int = None
     environmentFile: Optional[str] = None
 
+    def __init__(
+        self,
+        timeout: int = 10,
+        chunk: int = None,
+        environment_file: Optional[str] = None
+    ):
+        self.timeout = timeout
+        self.chunk = chunk
+        self.environment_file = environment_file
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "MethodOptions":
+        """Creates a MethodOptions instance from a dictionary."""
+        return cls(
+            timeout=data.get("timeout", 10),
+            chunk=data.get("chunk"),
+            environment_file=data.get("environmentFile")
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
+
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Version:
     """Version for the domain model."""
-    version: str
+    version: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Version":
@@ -726,12 +986,16 @@ class Version:
         return cls(
             version=data.get("version", "")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Ping:
     """Ping for the domain model."""
-    message: str
-    time: str
+    message: Optional[str] = None
+    time: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Ping":
@@ -740,13 +1004,17 @@ class Ping:
             message=data.get("message", ""),
             time=data.get("time", "")
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class Health:
     """Health for the domain model."""
-    message: str
-    time: str
-    uptime: int
+    message: Optional[str] = None
+    time: Optional[str] = None
+    uptime: Optional[int]= None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Health":
@@ -756,10 +1024,27 @@ class Health:
             time=data.get("time", ""),
             uptime=data.get("uptime", 0)
         )
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()
 
 @dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
 class CliCommandArgs:
     """Command line arguments."""
     expression: Optional[str]=None
     data: Optional[dict] = None
     options:Optional[QueryOptions] = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "CliCommandArgs":
+        """Creates a CliCommandArgs instance from a dictionary."""
+        return cls(
+            expression=data.get("expression"),
+            data=data.get("data"),
+            options=QueryOptions.from_dict(data.get("options"))
+        )
+
+    def to_dict(self) -> dict:
+        """Converts instance to a dictionary."""
+        return self.to_dict()

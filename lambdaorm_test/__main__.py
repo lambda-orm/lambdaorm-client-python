@@ -1,19 +1,24 @@
-"""Test module for the LambdaORM library."""
+"""Test the LambdaORM library."""
 import unittest
+# import asyncio
+import json
 from lambdaorm.domain import QueryOptions
-from lambdaorm.infrastructure import LambdaOrmRestClient
+from lambdaorm.infrastructure import Orm
 
-api = LambdaOrmRestClient('workspace', 'http://localhost:9291')
+orm = Orm('http://localhost:9291')
 
-class Test(unittest.TestCase):
+class Test(unittest.IsolatedAsyncioTestCase):
     """Test class for the LambdaORM library."""
 
-    def test_expression(self):
+    async def test_expression(self):
         """Test the expression method."""
-        expression = "Orders.filter(p=>p.customerId==customerId).include(p=>[p.details.include(p=>p.product.map(p=>p.name)).map(p=>{subTotal:p.quantity*p.unitPrice}),p.customer.map(p=>p.name)]).order(p=>p.orderDate).page(1,1)"
-        query_options = QueryOptions(stage ='default')
-            
-        result = api.plan(expression,query_options)
-        print(result)
+        expression = "Orders.filter(p=>p.customerId==customerId).include(p=>p.details).order(p=>p.orderDate).page(1,1)"
+        query_options = QueryOptions(stage='default')            
+        result = await orm.plan(expression, query_options)
+        print(json.dumps(result.to_dict()))
 
-unittest.main()
+        result = await orm.execute(expression, {"customerId": "CENTC"} , query_options)
+        print(json.dumps(result))
+
+if __name__ == '__main__':
+    unittest.main()

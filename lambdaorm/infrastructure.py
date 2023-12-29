@@ -1,8 +1,10 @@
 # pylint: disable=invalid-name
 """Infrastructure layer for the LambdaORM REST API."""
 from typing import List, Any, Optional
+from urllib.parse import urlparse
 import subprocess
 import json
+import os
 import requests
 from lambdaorm.domain import (CliCommandArgs, DomainSchema, Entity, EntityMapping, Metadata,
 MetadataConstraint, MetadataModel, MetadataParameter, MethodOptions, QueryOptions,
@@ -26,14 +28,12 @@ class RestHelper:
     def post(self, path: str, body: dict, options: MethodOptions=None)-> dict:
         """POST request to the REST API."""
         options = self.solve_method_options(options)
-        params = { format: options.format.value }
-        return requests.post(self.url + path, params= params, json=body, timeout= options.timeout).json()
+        return requests.post(self.url + path, json=body, timeout= options.timeout).json()
     
     def get(self, path: str,options: MethodOptions=None)-> dict:
         """GET request to the REST API."""
         options = self.solve_method_options(options)
-        params = { format: options.format.value }
-        return requests.get(self.url + path,params= params, timeout= options.timeout).json()
+        return requests.get(self.url + path, timeout= options.timeout).json()
 
 class ExpressionRestService(ExpressionService):
     """Client for the ORM REST API."""
@@ -79,19 +79,19 @@ class GeneralRestService(GeneralService):
         self.rest = RestHelper(url)
      
     async def version(self) -> Version:
-        response =  self.rest.get('/version')
+        response =  await self.rest.get('/version')
         return Version.from_dict(response)
 
     async def ping(self) -> Ping:
-        response =  self.rest.get('/ping')
+        response =  await self.rest.get('/ping')
         return Ping.from_dict(response)
 
     async def health(self) -> Health:
-        response =  self.rest.get('/health')
+        response =  await self.rest.get('/health')
         return Health.from_dict(response)
 
     async def metrics(self) -> Any:
-        return self.rest.get('/metrics')
+        return await self.rest.get('/metrics')
 
 class SchemaRestService(SchemaService):
     """Service for interacting with schema-related operations."""
@@ -99,63 +99,63 @@ class SchemaRestService(SchemaService):
         self.rest = RestHelper(url)
 
     async def version(self) -> Version:
-        response =  self.rest.get('/schema/version')
+        response =  await self.rest.get('/schema/version')
         return Version.from_dict(response)
 
     async def schema(self) -> Schema:
-        response =  self.rest.get('/schema')
+        response =  await self.rest.get('/schema')
         return Schema.from_dict(response)
 
     async def domain(self) -> DomainSchema:
-        response =  self.rest.get('/domain')
+        response =  await self.rest.get('/domain')
         return DomainSchema.from_dict(response)
 
     async def sources(self) -> List[Source]:
-        response =  self.rest.get('/sources')
+        response =  await self.rest.get('/sources')
         return Source.from_dict(response)
 
     async def source(self, source: str) -> Optional[Source]:
-        response =  self.rest.get('/sources/'+source)
+        response =  await self.rest.get('/sources/'+source)
         return Source.from_dict(response)
 
     async def entities(self) -> List[Entity]:
-        response =  self.rest.get('/entities')
+        response =  await self.rest.get('/entities')
         return Entity.from_dict(response)
 
     async def entity(self, entity: str) -> Optional[Entity]:
-        response =  self.rest.get('/entities/'+entity)
+        response =  await self.rest.get('/entities/'+entity)
         return Entity.from_dict(response)
 
     async def enums(self) -> List[EnumDomain]:
-        response =  self.rest.get('/enums')
+        response =  await self.rest.get('/enums')
         return EnumDomain.from_dict(response)
 
     async def enum(self, _enum: str) -> Optional[EnumDomain]:
-        response =  self.rest.get('/enums/'+_enum)
+        response =  await self.rest.get('/enums/'+_enum)
         return EnumDomain.from_dict(response)
 
     async def mappings(self) -> List[Mapping]:
-        response =  self.rest.get('/mappings')
+        response =  await self.rest.get('/mappings')
         return Mapping.from_dict(response)
 
     async def mapping(self, mapping: str) -> Optional[Mapping]:
-        response =  self.rest.get('/mappings/'+mapping)
+        response =  await self.rest.get('/mappings/'+mapping)
         return Mapping.from_dict(response)
 
     async def entityMapping(self, mapping: str, entity: str) -> Optional[EntityMapping]:
-        response =  self.rest.get('/mappings/'+mapping+'/'+entity)
+        response =  await self.rest.get('/mappings/'+mapping+'/'+entity)
         return EntityMapping.from_dict(response)
 
     async def stages(self) -> List[Stage]:
-        response =  self.rest.get('/stages/')
+        response =  await self.rest.get('/stages/')
         return Stage.from_dict(response)
 
     async def stage(self, stage: str) -> Optional[Stage]:
-        response =  self.rest.get('/stages/'+stage)
+        response =  await self.rest.get('/stages/'+stage)
         return Stage.from_dict(response)
 
     async def views(self) -> List[str]:
-        response =  self.rest.get('/views')
+        response =  await self.rest.get('/views')
         return response
 
 class StageRestService(StageService):
@@ -164,15 +164,15 @@ class StageRestService(StageService):
         self.rest = RestHelper(url)
 
     async def exists(self, stage: str) -> bool:
-        return self.rest.get('/stages/'+stage+'/exists')
+        return await self.rest.get('/stages/'+stage+'/exists')
 
     async def export(self, stage: str) -> SchemaConfig:
         """Export the configuration of a stage."""
-        response = self.rest.get('/stages/'+stage+'/export')
+        response = await self.rest.get('/stages/'+stage+'/export')
         return SchemaConfig.from_dict(response)
 
     async def import_(self, stage: str, data: SchemaConfig) -> None:
-        response =  self.rest.post('/stages/'+stage+'/import',data)
+        response =  await self.rest.post('/stages/'+stage+'/import',data)
         return QueryPlan.from_dict(response)
 
 class RestClientOrm(IOrm):
@@ -196,25 +196,25 @@ class RestClientOrm(IOrm):
         return self.stage
     
     async def model(self, expression: str) -> List[MetadataModel]:
-        return self.expression.model(expression)
+        return await self.expression.model(expression)
 
     async def parameters(self, expression: str) -> List[MetadataParameter]:
-        return self.expression.parameters(expression)
+        return await self.expression.parameters(expression)
 
     async def constraints(self, expression: str) -> MetadataConstraint:
-        return self.expression.constraints(expression)
+        return await self.expression.constraints(expression)
 
     async def metadata(self, expression: str) -> Metadata:
-        return self.expression.metadata(expression)
+        return await self.expression.metadata(expression)
 
     async def plan(self, expression: str, options: QueryOptions, method_options: MethodOptions = None) -> QueryPlan:
-        return self.expression.plan(expression, options, method_options)
+        return await self.expression.plan(expression, options, method_options)
 
     async def execute(self, expression: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        return self.expression.execute(expression, data, options, method_options)
+        return await self.expression.execute(expression, data, options, method_options)
 
     async def execute_queued(self, expression: str, topic: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        return self.expression.execute_queued(expression, topic, data, options, method_options)
+        return await self.expression.execute_queued(expression, topic, data, options, method_options)
 
 
 
@@ -256,27 +256,27 @@ class ExpressionCliService(ExpressionService):
         self.cli = CliCLientHelper(workspace)
         
     async def model(self, expression: str) -> List[MetadataModel]:
-        response = self.cli.command('model',CliCommandArgs(expression))
+        response = await self.cli.command('model',CliCommandArgs(expression))
         return MetadataModel.from_dict(response)
     
     async def parameters(self, expression: str) -> List[MetadataParameter]:
-        response = self.cli.command('parameters',CliCommandArgs(expression))
+        response = await self.cli.command('parameters',CliCommandArgs(expression))
         return MetadataParameter.from_dict(response)
 
     async def constraints(self, expression: str) -> MetadataConstraint:
-        response = self.cli.command('constraints',CliCommandArgs(expression))
+        response = await self.cli.command('constraints',CliCommandArgs(expression))
         return MetadataParameter.from_dict(response)
 
     async def metadata(self, expression: str) -> Metadata:
-        response = self.cli.command('metadata',CliCommandArgs(expression))
+        response = await self.cli.command('metadata',CliCommandArgs(expression))
         return MetadataParameter.from_dict(response)
 
     async def plan(self,expression:str, options:QueryOptions,method_options: MethodOptions=None) -> QueryPlan:
-        response = self.cli.command('plan',CliCommandArgs(expression,options=options),method_options)
+        response = await self.cli.command('plan',CliCommandArgs(expression,options=options),method_options)
         return QueryPlan.from_dict(response)
     
     async def execute(self,expression:str,data:dict=None, options:QueryOptions=None,method_options: MethodOptions=None) -> dict:
-        response = self.cli.command('execute',CliCommandArgs(expression, data=data, options=options),method_options)
+        response = await self.cli.command('execute',CliCommandArgs(expression, data=data, options=options),method_options)
         return QueryPlan.from_dict(response)
     
     async def execute_queued(self,expression:str,topic:str,data:dict=None, options:QueryOptions=None,method_options: MethodOptions=None) -> dict:
@@ -358,11 +358,11 @@ class StageCliService(StageService):
         raise NotImplementedError
 
     async def export(self, stage: str) -> SchemaConfig:
-        response = self.cli.command('export',CliCommandArgs(options={"stage":stage} ))
+        response = await self.cli.command('export',CliCommandArgs(options={"stage":stage} ))
         return SchemaConfig.from_dict(response)
 
     async def import_(self, stage: str, data: SchemaConfig) -> None:
-        self.cli.command('import_',CliCommandArgs(data=data, options={"stage":stage} ))
+        await self.cli.command('import_',CliCommandArgs(data=data, options={"stage":stage} ))
 
 class CliClientOrm(IOrm):
     """Client for the ORM CLI API."""
@@ -385,96 +385,78 @@ class CliClientOrm(IOrm):
         return self.stage
     
     async def model(self, expression: str) -> List[MetadataModel]:
-        return self.expression.model(expression)
+        return await self.expression.model(expression)
 
     async def parameters(self, expression: str) -> List[MetadataParameter]:
-        return self.expression.parameters(expression)
+        return await self.expression.parameters(expression)
 
     async def constraints(self, expression: str) -> MetadataConstraint:
-        return self.expression.constraints(expression)
+        return await self.expression.constraints(expression)
 
     async def metadata(self, expression: str) -> Metadata:
-        return self.expression.metadata(expression)
+        return await self.expression.metadata(expression)
 
     async def plan(self, expression: str, options: QueryOptions, method_options: MethodOptions = None) -> QueryPlan:
-        return self.expression.plan(expression, options, method_options)
+        return await self.expression.plan(expression, options, method_options)
 
     async def execute(self, expression: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        return self.expression.execute(expression, data, options, method_options)
+        return await self.expression.execute(expression, data, options, method_options)
 
     async def execute_queued(self, expression: str, topic: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        return self.expression.execute_queued(expression, topic, data, options, method_options)
+        return await self.expression.execute_queued(expression, topic, data, options, method_options)
 
 class OrmBuilder():
     """Factory for the ORM."""
 
-    def build(self, workspace:str=None, url:str=None) -> IOrm:
+    def build(self, workspace:str= os.getcwd()) -> IOrm:
         """Builds the ORM."""
-        if url is not None:
-            return RestClientOrm(url)
-        elif workspace is not None:
-            return CliClientOrm(workspace)
+        if self._is_url(workspace):
+            return RestClientOrm(workspace)
         else:
-            raise ValueError("Either workspace or url must be provided")
+            return CliClientOrm(workspace)
+        
+    def _is_url(self,value:str) -> bool:
+        """Checks if the value is a valid URL."""
+        try:
+            result = urlparse(value)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False    
 
 class Orm(IOrm):
     """ORM API."""
-    def __init__(self):
-        self._orm = None
-
-    def init(self, workspace:str=None, url:str=None)-> None:
-        """Initializes the ORM."""
-        self._orm = OrmBuilder().build(workspace,url)
+    def __init__(self, workspace:str=None):
+        self._orm = OrmBuilder().build(workspace)
 
     @property
     def get_general(self) -> GeneralService:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
         return self._orm.general
     
     @property
     def get_schema(self) -> SchemaService:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
         return self._orm.schema
     
     @property
     def get_stage(self) -> StageService:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
         return self._orm.stage
     
     async def model(self, expression: str) -> List[MetadataModel]:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.model(expression)
+        return await self._orm.expression.model(expression)
 
     async def parameters(self, expression: str) -> List[MetadataParameter]:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.parameters(expression)
+        return await self._orm.expression.parameters(expression)
 
     async def constraints(self, expression: str) -> MetadataConstraint:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.constraints(expression)
+        return await self._orm.expression.constraints(expression)
 
     async def metadata(self, expression: str) -> Metadata:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.metadata(expression)
+        return await self._orm.expression.metadata(expression)
 
     async def plan(self, expression: str, options: QueryOptions, method_options: MethodOptions = None) -> QueryPlan:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.plan(expression, options, method_options)
+        return await self._orm.expression.plan(expression, options, method_options)
 
     async def execute(self, expression: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.execute(expression, data, options, method_options)
+        return await self._orm.expression.execute(expression, data, options, method_options)
 
     async def execute_queued(self, expression: str, topic: str, data: dict = None, options: QueryOptions = None, method_options: MethodOptions = None) -> dict:
-        if self._orm is None:
-            raise ValueError("ORM is not initialized")
-        return self._orm.expression.execute_queued(expression, topic, data, options, method_options)
+        return await self._orm.expression.execute_queued(expression, topic, data, options, method_options)
