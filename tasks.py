@@ -13,7 +13,7 @@ def clean(ctx):
 @task(clean)
 def build(ctx):
     """Build the distribution package."""
-    ctx.run("python setup.py sdist bdist_wheel")
+    ctx.run("python3 setup.py sdist bdist_wheel")
 
 @task(build)
 def test(ctx):
