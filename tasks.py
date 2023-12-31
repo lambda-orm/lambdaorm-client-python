@@ -1,17 +1,24 @@
 """Tasks for building and publishing the package."""
 import os
-import subprocess
+import re
 from invoke import task, Collection
-
-def get_current_branch():
-    """Get the current branch name."""
-    try:
-        return subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], universal_newlines=True).strip()
-    except subprocess.CalledProcessError:
-        return None
-
 ns = Collection()
+
 ns.configure({'run': {'executable': 'python3'}})
+
+def get_version():
+    """Get the package version from the source code."""
+    try:
+        with open('setup.py', 'r', encoding='utf8') as archivo_setup:
+            contenido = archivo_setup.read()
+        version = re.search(r"version=['\"]([^'\"]+)['\"]", contenido)
+        return version.group(1)
+    except FileNotFoundError:
+        print('The file setup.py was not found.')
+    except IOError as e:
+        print(f'An I/O error occurred: {e}')
+    except Exception as e:
+        print(f'An error occurred: {e}')
 
 @task
 def clean(ctx):
@@ -31,13 +38,16 @@ def test(ctx):
 @task(test)
 def release(ctx):
     """Package and upload a release."""
-    current_branch = get_current_branch()
-    version = os.getenv('VERSION')
-    cmd= f"""git add . && git commit -m "chore(release): "{version}" && git push && git push --tags
-				  &&  git checkout -b release/"{version}" && git push --set-upstream origin release/"{version}"
-				  &&  git checkout main && git merge release/"{version}" -m "chore(release): release "{version}" " && git push
-				  &&  git checkout "{current_branch}" && git merge release/"{version}" -m "chore(release): release "{version}"" && git push
-				  &&  git branch -D release/"{version}" """
+    version = get_version()
+    resultado = ctx.run("git branch | sed -n -e 's/^\* \(.*\)/\1/p'", hide=True)
+    current_branch = resultado.stdout.strip()
+    cmd = (
+        f"git add . && git commit -m 'chore(release): {version}' && git push && git push --tags"
+        f" && git checkout -b release/{version} && git push --set-upstream origin release/{version}"
+        f" && git checkout main && git merge release/{version} -m 'chore(release): release {version}' && git push"
+        f" && git checkout {current_branch} && git merge release/{version} -m 'chore(release): release {version}' && git push"
+        f" && git branch -D release/{version}"
+    )    
     ctx.run(cmd)
 
 @task(test)
@@ -47,7 +57,5 @@ def publish(ctx):
     password = os.getenv('PYPI_PASSWORD')
     if not username or not password:
         raise ValueError("PyPI credentials not found in environment variables.")
-
-    # Aquí utiliza las credenciales en tu comando de publicación
     cmd = f'twine upload --username "{username}" --password "{password}" dist/*'
     ctx.run(cmd)

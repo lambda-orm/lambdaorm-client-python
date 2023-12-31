@@ -38,6 +38,7 @@
     "pytest",
     "rpad",
     "rtrim",
+    "sdist",
     "sqlite"
   ]
 }
