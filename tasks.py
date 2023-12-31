@@ -8,17 +8,10 @@ ns.configure({'run': {'executable': 'python3'}})
 
 def get_version():
     """Get the package version from the source code."""
-    try:
-        with open('setup.py', 'r', encoding='utf8') as archivo_setup:
-            contenido = archivo_setup.read()
-        version = re.search(r"version=['\"]([^'\"]+)['\"]", contenido)
-        return version.group(1)
-    except FileNotFoundError:
-        print('The file setup.py was not found.')
-    except IOError as e:
-        print(f'An I/O error occurred: {e}')
-    except Exception as e:
-        print(f'An error occurred: {e}')
+    with open('setup.py', 'r', encoding='utf8') as archivo_setup:
+        contenido = archivo_setup.read()
+    version = re.search(r"version=['\"]([^'\"]+)['\"]", contenido)
+    return version.group(1)
 
 @task
 def clean(ctx):
@@ -47,7 +40,7 @@ def release(ctx):
         f" && git checkout main && git merge release/{version} -m 'chore(release): release {version}' && git push"
         f" && git checkout {current_branch} && git merge release/{version} -m 'chore(release): release {version}' && git push"
         f" && git branch -D release/{version}"
-    )    
+    )
     ctx.run(cmd)
 
 @task(test)
