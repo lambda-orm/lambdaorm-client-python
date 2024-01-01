@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 import subprocess
 import json
 import os
+import re
 import requests
 from lambdaorm.domain import (CliCommandArgs, DomainSchema, Entity, EntityMapping, Metadata,
 MetadataConstraint, MetadataModel, MetadataParameter, MethodOptions, QueryOptions,
@@ -265,19 +266,18 @@ class ExpressionCliService(ExpressionService):
 
     async def constraints(self, expression: str) -> MetadataConstraint:
         response = await self.cli.command('constraints',CliCommandArgs(expression))
-        return MetadataParameter.from_dict(response)
+        return MetadataConstraint.from_dict(response)
 
     async def metadata(self, expression: str) -> Metadata:
         response = await self.cli.command('metadata',CliCommandArgs(expression))
-        return MetadataParameter.from_dict(response)
+        return Metadata.from_dict(response)
 
     async def plan(self,expression:str, options:QueryOptions,method_options: MethodOptions=None) -> QueryPlan:
         response = await self.cli.command('plan',CliCommandArgs(expression,options=options),method_options)
         return QueryPlan.from_dict(response)
     
     async def execute(self,expression:str,data:dict=None, options:QueryOptions=None,method_options: MethodOptions=None) -> dict:
-        response = await self.cli.command('execute',CliCommandArgs(expression, data=data, options=options),method_options)
-        return QueryPlan.from_dict(response)
+        return await self.cli.command('execute',CliCommandArgs(expression, data=data, options=options),method_options)
     
     async def execute_queued(self,expression:str,topic:str,data:dict=None, options:QueryOptions=None,method_options: MethodOptions=None) -> dict:
         raise NotImplementedError
@@ -288,7 +288,10 @@ class GeneralCliService(GeneralService):
         self.cli = CliCLientHelper(workspace)
      
     async def version(self) -> Version:
-        raise NotImplementedError
+        with open('setup.py', 'r', encoding='utf8') as archivo_setup:
+            contenido = archivo_setup.read()
+        version = re.search(r"version=['\"]([^'\"]+)['\"]", contenido)
+        return  { "version": version.group(1) }
 
     async def ping(self) -> Ping:
         raise NotImplementedError
@@ -305,50 +308,64 @@ class SchemaCliService(SchemaService):
         self.cli = CliCLientHelper(workspace)
 
     async def version(self) -> Version:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='schema/version'))
+        return Version.from_dict(response)
 
     async def schema(self) -> Schema:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='schema'))
+        return Schema.from_dict(response)
 
     async def domain(self) -> DomainSchema:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='domain'))
+        return DomainSchema.from_dict(response)
 
     async def sources(self) -> List[Source]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='sources'))
+        return Source.from_dict(response)
 
     async def source(self, source: str) -> Optional[Source]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'sources/{source}'))
+        return Source.from_dict(response)
 
     async def entities(self) -> List[Entity]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='entities'))
+        return Entity.from_dict(response)
 
     async def entity(self, entity: str) -> Optional[Entity]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'entities/{entity}'))
+        return Entity.from_dict(response)
 
     async def enums(self) -> List[EnumDomain]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='enums'))
+        return EnumDomain.from_dict(response)
 
     async def enum(self, _enum: str) -> Optional[EnumDomain]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'enums/{_enum}'))
+        return EnumDomain.from_dict(response)
 
     async def mappings(self) -> List[Mapping]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='mappings'))
+        return Mapping.from_dict(response)
 
     async def mapping(self, mapping: str) -> Optional[Mapping]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'mappings/{mapping}'))
+        return Mapping.from_dict(response)
 
     async def entityMapping(self, mapping: str, entity: str) -> Optional[EntityMapping]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'mappings/{mapping}/{entity}'))
+        return EntityMapping.from_dict(response)
 
     async def stages(self) -> List[Stage]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path='stages'))
+        return Stage.from_dict(response)
 
     async def stage(self, stage: str) -> Optional[Stage]:
-        raise NotImplementedError
+        response = await self.cli.command('schema',CliCommandArgs(path=f'stages/{stage}'))
+        return Stage.from_dict(response)
 
     async def views(self) -> List[str]:
-        raise NotImplementedError
-    
+        return await self.cli.command('schema',CliCommandArgs(path='views'))
+  
 class StageCliService(StageService):
     """Service for interacting with schema-related operations."""
     def __init__(self, workspace: str):

@@ -1035,6 +1035,7 @@ class CliCommandArgs:
     expression: Optional[str]=None
     data: Optional[dict] = None
     options:Optional[QueryOptions] = None
+    path: Optional[str]=None
 
     @classmethod
     def from_dict(cls, data: dict) -> "CliCommandArgs":
@@ -1042,7 +1043,8 @@ class CliCommandArgs:
         return cls(
             expression=data.get("expression"),
             data=data.get("data"),
-            options=QueryOptions.from_dict(data.get("options"))
+            options=QueryOptions.from_dict(data.get("options")),
+            path=data.get("path"),
         )
 
     def to_dict(self) -> dict:
