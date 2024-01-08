@@ -5,11 +5,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Test",
+      "name": "Service Lab",
       "type": "python",
       "request": "launch",
       "console": "integratedTerminal",
-      "module": "lab_simple"
+      "module": "lab_service"
     }
   ]
 }

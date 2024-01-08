@@ -180,21 +180,21 @@ class RestClientOrm(IOrm):
     """Client for the ORM REST API."""
     def __init__(self, url: str):
         self.expression = ExpressionRestService(url)
-        self.general = GeneralRestService(url)
-        self.schema = SchemaRestService(url)
-        self.stage = StageRestService(url)
+        self._general = GeneralRestService(url)
+        self._schema = SchemaRestService(url)
+        self._stage = StageRestService(url)
 
     @property
-    def get_general(self) -> GeneralService:
-        return self.general
+    def general(self) -> GeneralService:
+        return self._general
     
     @property
-    def get_schema(self) -> SchemaService:
-        return self.schema
+    def schema(self) -> SchemaService:
+        return self._schema
     
     @property
-    def get_stage(self) -> StageService:
-        return self.stage
+    def stage(self) -> StageService:
+        return self._stage
     
     async def model(self, expression: str) -> List[MetadataModel]:
         return await self.expression.model(expression)
@@ -385,21 +385,21 @@ class CliClientOrm(IOrm):
     """Client for the ORM CLI API."""
     def __init__(self, workspace: str):
         self.expression = ExpressionCliService(workspace)
-        self.general = GeneralCliService(workspace)
-        self.schema = SchemaCliService(workspace)
-        self.stage = StageCliService(workspace)
+        self._general = GeneralCliService(workspace)
+        self._schema = SchemaCliService(workspace)
+        self._stage = StageCliService(workspace)
 
     @property
-    def get_general(self) -> GeneralService:
-        return self.general
+    def general(self) -> GeneralService:
+        return self._general
     
     @property
-    def get_schema(self) -> SchemaService:
-        return self.schema
+    def schema(self) -> SchemaService:
+        return self._schema
     
     @property
-    def get_stage(self) -> StageService:
-        return self.stage
+    def stage(self) -> StageService:
+        return self._stage
     
     async def model(self, expression: str) -> List[MetadataModel]:
         return await self.expression.model(expression)
@@ -446,15 +446,15 @@ class Orm(IOrm):
         self._orm = OrmBuilder().build(workspace)
 
     @property
-    def get_general(self) -> GeneralService:
+    def general(self) -> GeneralService:
         return self._orm.general
     
     @property
-    def get_schema(self) -> SchemaService:
+    def schema(self) -> SchemaService:
         return self._orm.schema
     
     @property
-    def get_stage(self) -> StageService:
+    def stage(self) -> StageService:
         return self._orm.stage
     
     async def model(self, expression: str) -> List[MetadataModel]:

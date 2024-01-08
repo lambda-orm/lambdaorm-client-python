@@ -158,16 +158,16 @@ class IOrm(ExpressionService):
     """Interface for Orm."""
 
     @property
-    def get_general(self) -> GeneralService:
+    def general(self) -> GeneralService:
         """Get the general service."""
         raise NotImplementedError
     
     @property
-    def get_schema(self) -> SchemaService:
+    def schema(self) -> SchemaService:
         """Get the schema service."""
         raise NotImplementedError
     
     @property
-    def get_stage(self) -> StageService:
+    def stage(self) -> StageService:
         """Get the stage service."""
         raise NotImplementedError

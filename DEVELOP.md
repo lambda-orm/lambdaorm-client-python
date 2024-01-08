@@ -37,3 +37,9 @@ rm -rf build dist
 python setup.py sdist
 twine upload dist/*
 ```
+
+## Update requirements
+
+```bash
+pip install -r requirements.txt --upgrade
+```

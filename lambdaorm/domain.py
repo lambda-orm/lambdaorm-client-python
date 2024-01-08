@@ -20,16 +20,21 @@ class MetadataParameter:
     type: Optional[str] = None
     children: Optional[List["MetadataParameter"]] = None
 
-    @classmethod
-    def from_dict(cls, data: Union[dict, List[dict]]) -> Union["MetadataParameter", List["MetadataParameter"]]:
+    def __init__(self, name: str, type: str, children: Optional[List["MetadataParameter"]] = None):
+        self.name = name
+        self.type = type
+        self.children = children
+
+    @staticmethod
+    def from_dict(data:Any) -> Union["MetadataParameter", List["MetadataParameter"]]:
         """Creates a MetadataParameter instance from a dictionary or a list of dictionaries."""
         if isinstance(data, list):
-            return [cls.from_dict(item) for item in data]
+            return [MetadataParameter.from_dict(item) for item in data]
         elif isinstance(data, dict):
             name = data.get("name", "")
-            type_ = data.get("type", "")
-            children = cls.from_dict(data.get("children", []))
-            return cls(name=name, type=type_, children=children)
+            type = data.get("type", "")
+            children = MetadataParameter.from_dict(data.get("children", []))
+            return MetadataParameter(name=name, type=type, children=children)
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
     
@@ -45,9 +50,9 @@ class MetadataModel:
     type: Optional[str] = None
     children: Optional[List["MetadataModel"]] = None
 
-    def __init__(self, name: str, model_type: str, children: Optional[List["MetadataModel"]] = None):
+    def __init__(self, name: str, type: str, children: Optional[List["MetadataModel"]] = None):
         self.name = name
-        self.type = model_type
+        self.type = type
         self.children = children
 
     @classmethod
@@ -57,9 +62,9 @@ class MetadataModel:
             return [cls.from_dict(item) for item in data]
         elif isinstance(data, dict):
             name = data.get("name", "")
-            model_type = data.get("type", "")
+            type = data.get("type", "")
             children = cls.from_dict(data.get("children", []))
-            return cls(name=name, model_type=model_type, children=children)
+            return cls(name=name, type=type, children=children)
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
     
@@ -94,17 +99,17 @@ class MetadataConstraint:
     constraints: List[Constraint] = None
     children: Optional[List["MetadataConstraint"]] = None
 
-    @classmethod
-    def from_dict(cls, data: Union[dict, List[dict]]) -> Union["MetadataConstraint", List["MetadataConstraint"]]:
+    @staticmethod
+    def from_dict(data: Union[dict, List[dict]]) -> Union["MetadataConstraint", List["MetadataConstraint"]]:
         """Creates a MetadataConstraint instance from a dictionary or a list of dictionaries."""
         if isinstance(data, list):
-            return [cls.from_dict(item) for item in data]
+            return [MetadataConstraint.from_dict(item) for item in data]
         elif isinstance(data, dict):
             entity = data.get("entity", "")
             constraints_data = data.get("constraints", [])
             constraints = [Constraint(**constraint_data) for constraint_data in constraints_data]
-            children = cls.from_dict(data.get("children", []))
-            return cls(entity=entity, constraints=constraints, children=children)
+            children = MetadataConstraint.from_dict(data.get("children", []))
+            return MetadataConstraint(entity=entity, constraints=constraints, children=children)
         else:
             raise ValueError("Input must be a dictionary or a list of dictionaries")
 
