@@ -1,4 +1,4 @@
-dataclasses-json==0.5.4
+dataclasses-json==0.6.3
 invoke==2.2.0
 pytest==7.4.4
 commitizen==3.13.0
